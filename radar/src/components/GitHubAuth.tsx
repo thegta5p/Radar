@@ -1,6 +1,6 @@
 import { GithubAuthProvider,  signInWithPopup, getAuth } from "firebase/auth";
 import {app} from "../firebase";
-import {Button} from "@nextui-org/button"
+import {Button} from "@nextui-org/button";
 
 import { useState } from "react";
 
@@ -18,6 +18,7 @@ const GitHubAuth = () => {
       // pass the username to the backend, create a user profile for them
       setGhUsername(userName);
       console.log(userName);
+      window.location.href = "/main-page";
 
     }
     catch (error) {
