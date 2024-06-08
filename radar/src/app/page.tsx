@@ -2,6 +2,7 @@
 import { ThemeSwitcher } from "@/components/ThemeSwitcher";
 import LoginCard from "@/components/LoginCard";
 import Logo from "@/components/Logo";
+import LoginButton from "@/components/GitHubAuth";
 
 import Lobbies from "@/components/Lobbies";
 
@@ -13,6 +14,9 @@ export default function Home() {
       </div>
       <div className="fixed top-0 left-0 m-4">
         <Logo />
+      </div>
+      <div className="ml-64 mt-6">
+        <LoginButton />
       </div>
      
       <div>
