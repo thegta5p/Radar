@@ -1,6 +1,6 @@
 import { GithubAuthProvider,  signInWithPopup, getAuth } from "firebase/auth";
 import {app} from "../firebase";
-import {Button} from "@nextui-org/button"
+import {Button} from "@nextui-org/button";
 
 const GitHubAuth = () => {
   const auth = getAuth(app);
@@ -10,6 +10,7 @@ const GitHubAuth = () => {
       const result = await signInWithPopup(auth, provide);
       var userName = result.user.displayName;
       console.log(userName);
+      window.location.href = "/main-page";
 
     }
     catch (error) {
