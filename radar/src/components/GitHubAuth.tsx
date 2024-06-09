@@ -31,6 +31,8 @@ const GitHubAuth = () => {
       // setGhUsername(userName);
       // console.log(userName);
 
+      localStorage.setItem("uid", uid); // use uid to look up the current user
+
       router.push("/main-page");
     }
     catch (error) {
