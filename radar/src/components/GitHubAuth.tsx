@@ -21,8 +21,10 @@ const GitHubAuth = () => {
     try {
       const result = await signInWithPopup(auth, provide);
       var userName = result.user.displayName;
+      var email = result.user.email;
+      var uid = result.user.uid;
       // pass the username to the backend, create a user profile for them
-      socket.emit("user_login", userName);
+      socket.emit("user_login", userName, email, uid);
       // await socket.on("login_success", (login_id) => {
       //   localStorage.setItem("login_id", login_id);
       // });
