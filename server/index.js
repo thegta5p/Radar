@@ -119,6 +119,27 @@ io.on("connection", (socket) => { // => is a function expression, (parameter pas
         console.log("user disconnected: ", socket.id);
     });
 
+    socket.on("user_login", async (username) => {
+        console.log("user login:");
+        try {
+            const db = client.db("radar");
+            const users = db.collection("users");
+            var checkUser = await users.findOne({name: username});
+            if (!checkUser) {
+                console.log("user ", username, " not found, creating new user...");
+                const user = {name: username};
+                const newUser = await users.insertOne(user);
+            }
+            else { // user already exists
+                console.log("user ", username, " found!");
+            }
+        }  
+        catch (error) {
+            console.log("Error: " + error);
+        }
+    });
+
+
     socket.on("create_lobby", async (lobby_name, lobby_game) => {
         // client.connect();
         try {

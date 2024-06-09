@@ -21,14 +21,10 @@ import {
 } from "@nextui-org/react";
 import LobbyCreator from "./LobbyCreator";
 import Logout from "@/components/logout";
-import LoginButton from "@/components/LoginButton";
 import { Selection } from "@react-types/shared";
-import LobbyModal from "@/components/LobbyModal";
+// import LobbyModal from "@/components/LobbyModal";
 
 import { ThemeSwitcher } from "./ThemeSwitcher";
-
-import { BsSearch } from "react-icons/bs";
-import { Router } from "react-router-dom";
 
 
 export default function Lobbies() {
@@ -54,6 +50,7 @@ export default function Lobbies() {
 
   }, [lobbies]);
 
+  // uncomment this to use dummy data
   // const [lobbies, setLobbies] = useState([
   //   {
   //     name: "Lobby 1",
@@ -104,7 +101,7 @@ export default function Lobbies() {
     },
     {
       key: "id",
-      label: "ID",
+      label: "Lobby ID",
     },
   ];
 
@@ -194,15 +191,10 @@ export default function Lobbies() {
     return filteredItems.slice(start, end);
   }, [filteredItems, tablePage]);
 
-  function selectLobby(selection:any) {
-    setSelectedLobby(selection);
-    // alert(selection.id);
-  } 
 
   // selectedLobby will be a JS Set object
   // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set
-  const [selectedLobby, setSelectedLobby] = useState<Selection>(new Set());
-  const [selectedLobbyID, setSelectedLobbyID] = useState("");
+  const [selectedLobbyID, setSelectedLobbyID] = useState(null);
   return (
     <div>
       <div className="place-content-center grid gap-y-12 my-64">
@@ -210,13 +202,9 @@ export default function Lobbies() {
           topContent={tableTopContent}
           removeWrapper={true}
           color="primary"
-          // selectionMode="single"
           selectionMode="multiple"
           selectionBehavior="replace"
-          selectedKeys={selectedLobby}
-          onSelectionChange={setSelectedLobby}
-          // onRowAction={(key) => alert('/' + key)}
-          onRowAction={(key) => router.push(`/` + key)}
+          onRowAction={(key) => setSelectedLobbyID(key)}
           bottomContent={
             <div className="flex flex-col gap-4">
               <div className="flex justify-between gap-3 items-end">
@@ -230,8 +218,11 @@ export default function Lobbies() {
                   onChange={(tablePage) => setTablePage(tablePage)}
                 ></Pagination>
                 {/* route to selected lobby */}
-                <Button className="bg-purple-800 text-white" onClick={() => alert("double-click row to join lobby!")}>
-                  <p> Join Lobby {selectedLobby} </p>
+                <Button className="bg-purple-800 text-white" 
+                  // onClick={() => alert("double-click row to join lobby!")}
+                  onClick={() => router.push(`/` + selectedLobbyID)}
+                >
+                  <p> Join Lobby {selectedLobbyID} </p>
                 </Button>
               </div>
             </div>
