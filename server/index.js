@@ -107,6 +107,25 @@ app.get("/messages/:id", async (req, res) => {
 
 });
 
+app.get("/user/:username", async (req, res) => {
+    try {
+        const db = client.db("radar");
+        const users = db.collection("users");
+        const username = req.params.username;
+        const user = await users.findOne({ username: username });
+
+        if (user) {
+            res.json({ githubUsername: user.githubUsername });
+        } else {
+            res.status(404).send("User not found");
+        }
+    } catch (error) {
+        console.log("Error: " + error);
+        res.status(500).json({ error: "Internal server error" });
+    }
+});
+
+
 // io is the server, socket is the client websocket, each reference to "socket" can be thought of as speaking to the client which invoked it
 // socket.io emits events, then listens, waiting for a response from client
 // all server behavior happens here

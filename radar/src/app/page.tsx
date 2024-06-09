@@ -3,7 +3,8 @@
 import { ThemeSwitcher } from "@/components/ThemeSwitcher";
 import LoginCard from "@/components/LoginCard";
 import Logo from "@/components/Logo";
-
+import Lobbies from "@/components/Lobbies";
+import EditUserProfileButton from "@/components/Edituser";  // Import the button
 import { useContext } from "react";
 import SocketContext from "@/components/SocketContext";
 

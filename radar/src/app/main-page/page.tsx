@@ -1,13 +1,19 @@
-import React from "react";
+"use client";
 import { ThemeSwitcher } from "@/components/ThemeSwitcher";
+import LoginCard from "@/components/LoginCard";
 import Logo from "@/components/Logo";
 import Lobbies from "@/components/Lobbies";
+import EditUserProfileButton from "@/components/Edituser";  // Import the button
+import { useContext } from "react";
+import SocketContext from "@/components/SocketContext";
+
 
 const page = () => {
   return (
     <div>
      <div className="fixed top-4 right-0 m-4">
         <ThemeSwitcher />
+      <EditUserProfileButton />  
       </div>
       <div className="fixed top-0 left-0 m-4">
         <Logo />
