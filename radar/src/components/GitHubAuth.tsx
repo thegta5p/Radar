@@ -1,7 +1,7 @@
 import { GithubAuthProvider,  signInWithPopup, getAuth } from "firebase/auth";
 import {app} from "../firebase";
 import {Button} from "@nextui-org/button";
-
+import { FaGithub } from "react-icons/fa";
 import { useState, useContext } from "react";
 
 import SocketContext from "./SocketContext";
@@ -40,7 +40,10 @@ const GitHubAuth = () => {
 
   return (
     <div>
-      <Button onClick={handleGitHubClick}>Sign in with GitHub <span className="font-bold"> {ghUsername} </span> </Button>
+      <Button color="success" onClick={handleGitHubClick} className="flex justify-evenly items-center text-white">
+        <FaGithub className="text-3xl"/>
+        <p className="text-xl font-bold"> Sign in With GitHub </p>
+      </Button>
     </div>
   )
 
