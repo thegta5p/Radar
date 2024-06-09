@@ -4,7 +4,11 @@ import { ThemeSwitcher } from "@/components/ThemeSwitcher";
 import LoginCard from "@/components/LoginCard";
 import Logo from "@/components/Logo";
 
+import { useContext } from "react";
+import SocketContext from "@/components/SocketContext";
+
 export default function Home() {
+
   return (
     <main>
       <div className="fixed top-4 right-0 m-4">

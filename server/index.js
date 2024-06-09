@@ -120,18 +120,18 @@ io.on("connection", (socket) => { // => is a function expression, (parameter pas
     });
 
     socket.on("user_login", async (username) => {
+        console.log("user login:");
         try {
             const db = client.db("radar");
             const users = db.collection("users");
-            const result = await users.find({name: username}, {_id: 1, name: 1});
-            if (result != null) {
-                // user already exists, send a token to client, nickname should be put in local storage
-            }
-            else { // user does not exist, add to DB
+            var checkUser = await users.findOne({name: username});
+            if (!checkUser) {
+                console.log("user ", username, " not found, creating new user...");
                 const user = {name: username};
-                const result = await users.insertOne(user);
-                
-                // console.log("user ", username, " logged in");
+                const newUser = await users.insertOne(user);
+            }
+            else { // user already exists
+                console.log("user ", username, " found!");
             }
         }  
         catch (error) {

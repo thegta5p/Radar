@@ -21,14 +21,10 @@ import {
 } from "@nextui-org/react";
 import LobbyCreator from "./LobbyCreator";
 import Logout from "@/components/logout";
-import LoginButton from "@/components/LoginButton";
 import { Selection } from "@react-types/shared";
-import LobbyModal from "@/components/LobbyModal";
+// import LobbyModal from "@/components/LobbyModal";
 
 import { ThemeSwitcher } from "./ThemeSwitcher";
-
-import { BsSearch } from "react-icons/bs";
-import { Router } from "react-router-dom";
 
 
 export default function Lobbies() {
@@ -105,7 +101,7 @@ export default function Lobbies() {
     },
     {
       key: "id",
-      label: "ID",
+      label: "Lobby ID",
     },
   ];
 
