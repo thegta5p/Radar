@@ -127,7 +127,7 @@ io.on("connection", (socket) => { // => is a function expression, (parameter pas
             var checkUser = await users.findOne({uid: uid});
             if (!checkUser) {
                 console.log("user ", username, " not found, creating new user...");
-                const user = {name: username, email: email, uid: uid};
+                const user = {name: username, email: email, uid: uid, nickname: ""};
                 const newUser = await users.insertOne(user);
             }
             else { // user already exists
