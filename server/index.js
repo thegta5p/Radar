@@ -114,11 +114,11 @@ io.on("connection", (socket) => { // => is a function expression, (parameter pas
             const users = db.collection("users");
             var checkUser = await users.findOne({ uid: uid });
             if (!checkUser) {
-                console.log(`User ${username} not found, creating new user...`);
-                const user = { name: username, email: email, uid: uid };
-                await users.insertOne(user);
-            } else {
-                console.log(`User ${username} with UID (${uid}) and Email (${email}) found!`);
+
+                console.log("user ", username, " not found, creating new user...");
+                const user = {name: username, email: email, uid: uid, nickname: username}; // nickname defaults to gh displayname
+                const newUser = await users.insertOne(user);
+
             }
         } catch (error) {
             console.error(`Error during user login: ${error}`);
@@ -146,6 +146,20 @@ io.on("connection", (socket) => { // => is a function expression, (parameter pas
     });
     
 
+
+    socket.on("update_nickname", async (nickname, uid) => {
+        console.log("user ", uid, " updating nickname to ", nickname);
+        try {
+            const db = client.db("radar");
+            const users = db.collection("users");
+            const result = await users.updateOne({uid: uid}, {$set: {nickname: nickname}});
+        }
+        catch (error) {
+            console.log("Error: " + error);
+        }
+    });
+
+
     socket.on("create_lobby", async (lobby_name, lobby_game) => {
         // client.connect();
         try {
@@ -172,11 +186,11 @@ io.on("connection", (socket) => { // => is a function expression, (parameter pas
         // client should re-render on DB update
         // lobby_id should be a string of form: "chat1"
         // make sure it's actually passed in as a string...
-    socket.on("send_message", async (message, lobby_id) => {
+    socket.on("send_message", async (message, lobby_id, author_uid) => {
         try {
             const db = client.db("radar");
             const messages = db.collection("messages");
-            const msg = {content: message.content, author: message.author, timeStamp: message.timeStamp, lobby_id: lobby_id};
+            const msg = {content: message.content, author: message.author, timeStamp: message.timeStamp, lobby_id: lobby_id, author_uid: uid};
             const result = await messages.insertOne(msg);
             // not used in Chat.tsx for now, but will be useful for synchronizing db requests from client
             socket.to(lobby_id).emit("recieve_message", message); // on recieved message, clients should fetch the latest messages from the DB
