@@ -65,6 +65,19 @@ app.get("/lobbies", async (req, res) => {
     // }
 });
 
+app.get("/lobbies/:id", async (req, res) => {
+    try {
+        const db = client.db("radar");
+        const lobbies = db.collection("lobbies");
+        const result = await lobbies.findOne({id: req.params.id});
+        res.json(result);
+    }
+    catch (error) { 
+        console.log("Error: " + error);
+        res.status(500).json({ error: "Internal server error" });
+    }
+});
+
 app.get("/users/:uid", async (req, res) => {
     try {
         const db = client.db("radar");
