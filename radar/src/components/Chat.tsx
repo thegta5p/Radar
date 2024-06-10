@@ -1,199 +1,113 @@
 "use client";
-import { useState, useEffect, useRef, useContext } from "react";
-import {
-  Card,
-  CardHeader,
-  CardBody,
-  CardFooter,
-  Input,
-  ScrollShadow,
-  Spacer,
-  Button,
-  Textarea,
-  Divider,
-} from "@nextui-org/react";
+import { useState, useContext, useEffect, useRef } from "react";
+import { Card, CardHeader, CardBody, CardFooter, ScrollShadow, Spacer, Textarea, Button } from "@nextui-org/react";
 import SocketContext from "@/components/SocketContext";
-import { io } from "socket.io-client";
+import EditUserProfileButton from "./EditUser"; // Ensure this is the correct path
 
 class MessageData {
-  // pass MessageData objects around
   content: string;
   author: string;
   timeStamp: string;
-  // uid: string; // uid not used 
 
   constructor(content: string, author: string) {
     this.content = content;
     this.author = author;
     this.timeStamp = new Date().toLocaleDateString() + " @ " + new Date().toLocaleTimeString();
-    // this.uid = localStorage.getItem("uid") || "-1";
   }
 }
 
-export default function Chat({lobbyID} : {lobbyID: string}) {
+export default function Chat({ lobbyID } : { lobbyID: string }) {
   const socket = useContext(SocketContext);
+  const [currentMessage, setCurrentMessage] = useState("");
+  const [sessionUsername, setSessionUsername] = useState("");
+  const [showEditButton, setShowEditButton] = useState(false);
+  const [messageList, setMessageList] = useState<MessageData[]>([]);
+  const messageListEndRef = useRef(null);
 
-  // TODO: pass in the lobby_ID and username from DB
-  // for now, prompt the user to pick a username
-  const [currentMessage, SetCurrentMessage] = useState("");
+  const toggleEditButton = () => setShowEditButton(!showEditButton);
 
-  // default values set for lobbyID and username
+  const handleUsernameSubmit = (username: string) => {
+    setSessionUsername(username);
+    toggleEditButton(); // Hide the edit button once the username is submitted
+  };
 
-  async function getNickname() {
-    
-    await fetch("http://localhost:8080/users/" + localStorage.getItem("uid"))
-      .then(
-        (res) => res.json(),
-        (err) => console.error(err)
-      )
-      .then((data) => {
-        SetSessionUsername(data.username);
-      });
+  async function getMessages() {
+    await fetch(`http://localhost:8080/messages/${lobbyID}`)
+      .then(res => res.json())
+      .then(data => {
+        setMessageList(data);
+      })
+      .catch(err => console.error(err));
   }
 
-
-  const [sessionUsername, SetSessionUsername] = useState("");
-
-  const [serverMessageList, SetServerMessageList] = useState<MessageData[]>([]); // messageList : MessageData[] // array of MessageData objects
-
-  // local message list
-  const [messageList, SetMessageList] = useState<MessageData[]>([]); // messageList : MessageData[] // array of MessageData objects
-  // it's important to use useState vs a a normal variable here because react re-renders when useStates are modified
-  // normal variables are reset upon render, easy to get out sync with visual components
-
-  const messageListEndRef = useRef(null);
-  
-  function ChatInit() {
-    let str = prompt("Enter a username");
-    if (str != null && str != "") {
-      SetSessionUsername(str);
+  useEffect(() => {
+    if (sessionUsername) {
       socket.emit("join_chat", sessionUsername, lobbyID);
+    }
+    getMessages();
+  }, [sessionUsername, lobbyID]); // Effect runs when `sessionUsername` or `lobbyID` changes
+
+  const sendMessage = () => {
+    if (currentMessage != "" && sessionUsername != "") {
+      const newMessage = new MessageData(currentMessage, sessionUsername);
+      socket.emit("send_message", newMessage, lobbyID);
+      setCurrentMessage("");
+      setMessageList([...messageList, newMessage]);
     }
   };
 
   const scrollToBottom = () => {
-    messageListEndRef.current?.scrollIntoView({ behavior: "smooth" }); // '?' indicates that prop might be undefined
+    messageListEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
-    
-  async function getMessages() {
-    await fetch("http://localhost:8080/messages/" + lobbyID)
-      .then(
-        (res) => res.json(),
-        (err) => console.error(err)
-      )
-      .then((data) => {
-        SetServerMessageList(data);
-      });
-  }
-  
-  // run on initial render
-  useEffect(() =>  {
-    if (sessionUsername == "") {
-      ChatInit();
-    }
-    // getMessages();
-  }, []); // empty dependency array passed in, so effect will only run once, will not run on every re-render
-
-  const SendMessage = () => {
-    if (currentMessage != "" && sessionUsername != "") {
-      console.log("sending message: ", currentMessage);
-      let newMessage = new MessageData(currentMessage, sessionUsername); // push message to messageList array
-
-      socket.emit("send_message", newMessage, lobbyID, localStorage.getItem("uid") || "-1");
-
-      // might need to get rid of this line, messages will be sent to server
-      // server will update the db, and send that data back to everyone in the room
-      // SetMessageList([...messageList, newMessage]); // don't use mutate the array, set it to a new array
-    }
-    SetCurrentMessage(""); // should clear input field
-  };
-
-
-
-  // listener for recieving messages
-  // will run when dependencies change/rerender
-  useEffect(() => {
-    // request message history from server on socket emit event
-    // socket.on("recieve_message", (recievedMessage: MessageData) => {
-    //   getMessages();
-    //   console.log("recieved message: ", recievedMessage);
-    //   // SetMessageList([...messageList, recievedMessage]); // don't use mutate the array, set it to a new array
-    //   scrollToBottom(); // only scroll to bottom on socket event
-    // });
-
-    getMessages();
-    if (messageList.length != serverMessageList.length) {
-      SetMessageList(serverMessageList);
-      // scrollToBottom();
-    }
-
-    // serverMessageList will change constantly, need to check if we should update local messages
-  }, [serverMessageList]); // 2nd arg is for dependencies which might change
-
 
   useEffect(() => {
     scrollToBottom();
   }, [messageList]);
 
   return (
-      <Card className="h-full w-96" shadow="none">
-        <CardHeader className="justify-center">
-          <Button onClick={ChatInit}>
-            Nickname:
-            <div className="font-bold text-purple-500">{sessionUsername}</div>
-          </Button>
-        </CardHeader>
+    <Card className="h-full w-96" shadow="none">
+      <CardHeader className="justify-center">
+        <Button flat onClick={toggleEditButton}>
+          Nickname: <span className="font-bold text-purple-500">{sessionUsername || "Set Nickname"}</span>
+        </Button>
+        {showEditButton && <EditUserProfileButton onNicknameSubmit={handleUsernameSubmit} />}
+      </CardHeader>
 
-        <CardBody className="h-96">
-          <Spacer y={2} />
+      <CardBody className="h-96">
+        <ScrollShadow visibility="top">
+          {messageList.map((m, index) => (
+            <Message key={index} {...m} />
+          ))}
+          <div ref={messageListEndRef} />
+        </ScrollShadow>
+      </CardBody>
 
-          <ScrollShadow visibility="top">
-            {messageList.map((m) => (
-              <Message
-                key={m.timeStamp}
-                content={m.content}
-                author={m.author}
-                timeStamp={m.timeStamp}
-              />
-            ))}
-            {/* key is needed for react to disgtinguish between elements/for production build to compile */}
-            <div ref={messageListEndRef} />
-          </ScrollShadow>
-        </CardBody>
-
-        <CardFooter className="flex">
-          <Textarea
-            className="grow"
-            type="text"
-            placeholder="Type message here, press Enter to send..."
-            value={currentMessage}
-            onValueChange={SetCurrentMessage}
-            onKeyDown={(event) => {
-              if (event.key == "Enter") {
-                // emit event and create message component when user presses enter
-                event.preventDefault();
-                SendMessage();
-              }
-            }}
-          />
-        </CardFooter>
-      </Card>
+      <CardFooter className="flex">
+        <Textarea
+          className="grow"
+          placeholder="Type message here, press Enter to send..."
+          value={currentMessage}
+          onValueChange={setCurrentMessage}
+          onKeyDown={(event) => {
+            if (event.key === "Enter" && !event.shiftKey) {
+              event.preventDefault();
+              sendMessage();
+            }
+          }}
+        />
+      </CardFooter>
+    </Card>
   );
 }
 
-function Message(data: MessageData) {
+function Message({ content, author, timeStamp }) {
   return (
     <Card className="m-3" shadow="sm" radius="none">
       <CardHeader className="flex justify-between">
-        <p className="text-base font-bold text-left text-purple-500">
-          {data.author}
-        </p>
-        <p className="text-sm text-right">
-          {data.timeStamp}
-          {/* time, formated as HR:MIN:SEC*/}
-        </p>
+        <p className="text-base font-bold text-left text-purple-500">{author}</p>
+        <p className="text-sm text-right">{timeStamp}</p>
       </CardHeader>
-      <CardBody className="text-base">{data.content}</CardBody>
+      <CardBody className="text-base">{content}</CardBody>
     </Card>
   );
 }

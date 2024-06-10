@@ -11,9 +11,9 @@ const page = () => {
   return (
     <div>
       <div className="fixed top-4 right-0 m-4 flex items-center space-x-4"> 
-      <EditUserProfileButton uid={uid} />
+
         <ThemeSwitcher />
-      
+        <EditUserProfileButton  />
       </div>
       <div className="fixed top-0 left-0 m-4">
         <Logo />
