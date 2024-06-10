@@ -11,7 +11,8 @@
 ![github](https://img.shields.io/badge/GitHub-100000?style=for-the-badge&logo=github&logoColor=white)
 
 # Radar
-Contributors: Julian Dela Rosa-Billings (jdela055@ucr.edu), (jmuni017@ucr.edu), Isaac Castro (icast065@ucr.edu)
+Contributors: Julian Dela Rosa-Billings (jdela055@ucr.edu), (jmuni017@ucr.edu), Isaac Castro (icast065@ucr.edu), Nathan Nguyen (nnguy350@ucr.edu)
+
 Additonal Server Libraries Used: socket.io
 
 Notes:
