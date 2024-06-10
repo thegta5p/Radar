@@ -81,7 +81,7 @@ export default function Chat({lobbyID} : {lobbyID: string}) {
     
     function ChatInit() {
       getNickname();
-      socket.emit("join_chat", sessionUsername, lobbyID);
+      socket.emit("join_chat", lobbyID, localStorage.getItem("uid"));
     };
 
     ChatInit();

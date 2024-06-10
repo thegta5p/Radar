@@ -34,7 +34,7 @@ export default function LobbySidebar({name, game, id}) {
   const socket = useContext(SocketContext);
   const router = useRouter();
 
-  const [memberList, setMemberList] = useState(["user1", "user2", "user3", "user4", "user5"]);
+  const [memberList, setMemberList] = useState(["user1", "user2", "user3", "user4", "user5", "user6", "user7", "user8", "user9"]);
   // when someone joins the lobby, push them onto memberList
   const [lobbyTitle, setLobbyTitle] = useState(name);
   const [activityTitle, setActivityTitle] = useState(game);
@@ -93,8 +93,8 @@ export default function LobbySidebar({name, game, id}) {
         <p> lobbyID: {id} </p>
       </CardHeader>
 
-      <CardBody className="self-center">
-        <div className="grid gap-1 grid-cols-2 self-center">
+      <CardBody className="flex flex-col justify-center">
+        <div className="grid gap-1 grid-cols-2">
           {memberList.map((m) => (
                       <Dropdown key={m}>
                         <DropdownTrigger>

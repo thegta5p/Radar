@@ -78,11 +78,12 @@ app.get("/lobbies/:id", async (req, res) => {
     }
 });
 
+// get user info by uid
 app.get("/users/:uid", async (req, res) => {
     try {
         const db = client.db("radar");
         const users = db.collection("users");
-        const result = await users.findOne({uid: req.params.uid}, {_id:0, name:0, email:0, uid:0, nickname:1});
+        const result = await users.findOne({uid: req.params.uid}, {_id:0, name:1, email:1, uid:1, nickname:1});
         res.json(result);
     }
     catch (error) {
@@ -183,9 +184,22 @@ io.on("connection", (socket) => { // => is a function expression, (parameter pas
         }
     });
 
-    socket.on("join_chat", (username, lobby_id) => {
+    socket.on("join_chat", async (lobby_id, uid) => {
         socket.join(lobby_id);
-        console.log(username, " joined chat on lobby ", lobby_id);    
+        try {
+            const db = client.db("radar");
+            const lobbies = db.collection("lobbies");
+            // check if the member is on the member list, if not, add them
+            const checkMember = await lobbies.findOne({id: lobby_id, members: uid}); // does members contain the user with uid?
+            if (!checkMember) {
+                const result = await lobbies.updateOne({id: lobby_id}, {$addToSet: {members: uid}});
+                console.log("added user with uid ", uid, " to lobby ", lobby_id);
+            }
+        }
+        catch (error) {
+            console.log("Error: " + error);
+        }
+        console.log("user with uid ", uid, " joined chat on lobby ", lobby_id);
     });
     
     // when a message is sent, update the database
@@ -208,14 +222,6 @@ io.on("connection", (socket) => { // => is a function expression, (parameter pas
         }
     });
 });
-
-
-// process.on("exit", () => {
-//     client.close();
-//     console.log("Closed connection to MongoDB");
-//     process.exit();
-// });
-
 
 // will disconnect when the process is terminated
 process.on("SIGINT", () => {
