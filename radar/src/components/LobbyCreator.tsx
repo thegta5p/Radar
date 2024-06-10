@@ -79,7 +79,7 @@ export default function LobbyCreator() {
   const CreateLobby = async () => {
     // update the DB to reflect new lobby
     // const socket = useContext(SocketContext);
-    socket.emit("create_lobby", inputTitleValue, inputGameValue);
+    socket.emit("create_lobby", inputTitleValue, inputGameValue, localStorage.getItem("uid"));
   };
 
   return (

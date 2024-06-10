@@ -154,17 +154,29 @@ io.on("connection", (socket) => { // => is a function expression, (parameter pas
     });
 
 
-    socket.on("create_lobby", async (lobby_name, lobby_game) => {
+    socket.on("create_lobby", async (lobby_name, lobby_game, owner_uid) => {
         // client.connect();
         try {
             const db = client.db("radar");
             const lobbies = db.collection("lobbies");
             // pass a unique lobby_id to the DB
             const lobby_id = (+new Date * Math.random()).toString(36).substring(0,6);
-            const lobby = { name: lobby_name, game: lobby_game, id: lobby_id };
+            const lobby = { name: lobby_name, game: lobby_game, id: lobby_id, owner_uid: owner_uid};
             const result = await lobbies.insertOne(lobby);
             // client.close();
-            console.log("lobby created: " + lobby_name + ", " + lobby_game + ", " + lobby_id);
+            console.log("lobby created: " + lobby_name + ", " + lobby_game + ", " + lobby_id, " by ", owner_uid);
+        }
+        catch (error) {
+            console.log("Error: " + error);
+        }
+    });
+
+    socket.on("close_lobby", async (lobby_id) => {
+        try {
+            const db = client.db("radar");
+            const lobbies = db.collection("lobbies");
+            const result = await lobbies.deleteOne({id: lobby_id});
+            console.log("lobby ", lobby_id, " closed");
         }
         catch (error) {
             console.log("Error: " + error);

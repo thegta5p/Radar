@@ -1,6 +1,10 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useContext } from "react";
+
+import { useRouter } from "next/navigation";
+
+import SocketContext from "./SocketContext";
 
 import {
   Card,
@@ -26,7 +30,10 @@ import {
 
 export default function LobbySidebar({name, game, id}) {
   // will be updated based on joined users
-  // const userArr = [localStorage.getItem("session_username")];
+  
+  const socket = useContext(SocketContext);
+  const router = useRouter();
+
   const [memberList, setMemberList] = useState(["user1", "user2", "user3", "user4", "user5"]);
   // when someone joins the lobby, push them onto memberList
   const [lobbyTitle, setLobbyTitle] = useState(name);
@@ -43,12 +50,6 @@ export default function LobbySidebar({name, game, id}) {
   // need to set this bool on clientside based on whether the current user is the lobby owner or not
   
   useEffect(() => {
-    function checkLobbyOwner() {
-      // if (localStorage.getItem("session_username") === lobbyOwner) {
-      //   setDisabled(false);
-      // }
-    }
-
     // check for lobby owner
     async function getLobbyInfo() {
         await fetch("http://localhost:8080/lobbies/" + id)
@@ -61,11 +62,21 @@ export default function LobbySidebar({name, game, id}) {
                 // alert(data.name);
                 setLobbyTitle(data.name);
                 setActivityTitle(data.game);
+                // alert("lobby owner_uid: " + data.owner_uid);
+                if (data.owner_uid == localStorage.getItem("uid")) {
+                    setDisabled(false);
+                }
             });
     }
-
     getLobbyInfo();
 }, []);
+
+  function handleLobbyClose() {
+    alert("closing lobby!");
+    // route user back to main page, emit socket delete event
+    socket.emit("close_lobby", id);
+    router.replace("/main-page");
+  }
 
   return (
     <Card className="grow" radius ="none" shadow="none">
@@ -99,7 +110,13 @@ export default function LobbySidebar({name, game, id}) {
         </div>
       </CardBody>
       <CardFooter className="justify-center">
-        <Button color="danger" isDisabled={disabled}> Close Lobby </Button>
+        <Button color="danger" 
+        isDisabled={disabled}
+        onClick={() => handleLobbyClose()}
+          
+        > Close Lobby 
+
+        </Button>
       </CardFooter>
     </Card>
 
