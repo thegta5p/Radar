@@ -20,11 +20,13 @@ class MessageData {
   content: string;
   author: string;
   timeStamp: string;
+  // uid: string; // uid not used 
 
   constructor(content: string, author: string) {
     this.content = content;
     this.author = author;
     this.timeStamp = new Date().toLocaleDateString() + " @ " + new Date().toLocaleTimeString();
+    // this.uid = localStorage.getItem("uid") || "-1";
   }
 }
 
@@ -36,6 +38,20 @@ export default function Chat({lobbyID} : {lobbyID: string}) {
   const [currentMessage, SetCurrentMessage] = useState("");
 
   // default values set for lobbyID and username
+
+  async function getNickname() {
+    
+    await fetch("http://localhost:8080/users/" + localStorage.getItem("uid"))
+      .then(
+        (res) => res.json(),
+        (err) => console.error(err)
+      )
+      .then((data) => {
+        SetSessionUsername(data.username);
+      });
+  }
+
+
   const [sessionUsername, SetSessionUsername] = useState("");
 
   const [serverMessageList, SetServerMessageList] = useState<MessageData[]>([]); // messageList : MessageData[] // array of MessageData objects
@@ -83,7 +99,7 @@ export default function Chat({lobbyID} : {lobbyID: string}) {
       console.log("sending message: ", currentMessage);
       let newMessage = new MessageData(currentMessage, sessionUsername); // push message to messageList array
 
-      socket.emit("send_message", newMessage, lobbyID);
+      socket.emit("send_message", newMessage, lobbyID, localStorage.getItem("uid") || "-1");
 
       // might need to get rid of this line, messages will be sent to server
       // server will update the db, and send that data back to everyone in the room
