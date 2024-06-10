@@ -55,38 +55,9 @@ export default function LobbySidebar({name, game, id}) {
   // need a pointers to lobby owner, and current user
   // need to set this bool on clientside based on whether the current user is the lobby owner or not
 
-  /*
-  const UpdateDescription = () => {
-    // send the new description to server
-    console.log("Description updated: ", description);
-  };
-
-  const SetLobbyTitle = () => {
-    let str = prompt("Enter Lobby Title:");
-    if (str != "" && str != null) {
-      setLobbyTitle(str);
-    } else {
-      setLobbyTitle("LOBBY_TITLE");
-    }
-  };
-
-  const SetActivityTitle = () => {
-    let str = prompt("Enter Activity Title:");
-    if (str != "" && str != null) {
-      setActivityTitle(str);
-    } else {
-      setActivityTitle("ACTIVITY_TITLE");
-    }
-  };
-
-  const KickMember = (toKick: string) => {
-    // might have to be based on userID or something more objective
-    setMemberList(memberList.filter((member) => member != toKick)); // should remove the user from the list
-  };
-  */
 
   return (
-    <div className="flex">
+    <div className="flex justify-center items-start">
       <Tooltip content={toolTip}>
         <Card
           className="flex-col justify-center w-64"
@@ -120,28 +91,6 @@ export default function LobbySidebar({name, game, id}) {
               </Button>
             </Tooltip>
           </CardHeader>
-
-          <Divider />
-
-          <CardBody className="flex justify-center">
-            <Textarea
-              label="Description"
-              isReadOnly={toggleDisable}
-              value={description}
-              onValueChange={setDescription}
-            />
-
-            <Spacer />
-            <Button>
-              Save Description
-            </Button>
-
-            <Spacer />
-            <Divider />
-            <Spacer />
-
-            {/* <TagsDropdown tags = {tags}/> */}
-          </CardBody>
 
           <Divider />
 

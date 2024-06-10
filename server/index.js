@@ -65,27 +65,18 @@ app.get("/lobbies", async (req, res) => {
     // }
 });
 
-// don't need this for now, need to figure out how to generate routes for each lobby
-// routes currently made for any "/[id]", even lobbies that don't exist
-    // see next.config.mjs for more info
-// app.get("/lobbies/ids", async (req, res) => {
-//     // https://stackoverflow.com/questions/25589113/how-to-select-a-single-field-for-all-documents-in-a-mongodb-collection
-//     try {
-//         // await client.connect();
-//         const db = client.db("radar");
-//         const lobbies = db.collection("lobbies");
-//         const result = await lobbies.find({}, {name:0, game:0, id:1, _id:0}).toArray();
-//         res.json(result);
-//     }
-//     catch (error) {
-//         console.log("Error: " + error);
-//         res.status(500).json({ error: "Internal server error" });
-//     }
-//     // finally {
-//     //     await client.close();
-//     // }
-// });
-
+app.get("/users/:uid", async (req, res) => {
+    try {
+        const db = client.db("radar");
+        const users = db.collection("users");
+        const result = await users.findOne({uid: req.params.uid}, {_id:0, name:0, email:0, uid:0, nickname:1});
+        res.json(result);
+    }
+    catch (error) {
+        console.log("Error: " + error);
+        res.status(500).json({ error: "Internal server error" });
+    }
+});
 
 app.get("/messages/:id", async (req, res) => {
     // if (req.params.id == '1') {
@@ -103,8 +94,6 @@ app.get("/messages/:id", async (req, res) => {
         console.log("Error: " + error);
         res.status(500).json({ error: "Internal server error" });
     }
-
-
 });
 
 // io is the server, socket is the client websocket, each reference to "socket" can be thought of as speaking to the client which invoked it
@@ -182,11 +171,12 @@ io.on("connection", (socket) => { // => is a function expression, (parameter pas
         try {
             const db = client.db("radar");
             const messages = db.collection("messages");
-            const msg = {content: message.content, author: message.author, timeStamp: message.timeStamp, lobby_id: lobby_id, author_uid: uid};
+            const msg = {content: message.content, author: message.author, timeStamp: message.timeStamp, lobby_id: lobby_id, author_uid: author_uid};
             const result = await messages.insertOne(msg);
             // not used in Chat.tsx for now, but will be useful for synchronizing db requests from client
             socket.to(lobby_id).emit("recieve_message", message); // on recieved message, clients should fetch the latest messages from the DB
-            console.log("(", socket.id, "): ", message.author, " says : \"", message.content, " \" to ", lobby_id, " at ", message.timeStamp);
+            // console.log("(", socket.id, "): ", message.author, " says : \"", message.content, " \" to ", lobby_id, " at ", message.timeStamp);
+            console.log(message.author, " says : \"", message.content, " \" to ", lobby_id, " at ", message.timeStamp);
         }
         catch (error) {
             console.log("Error: " + error);

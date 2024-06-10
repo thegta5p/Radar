@@ -39,19 +39,6 @@ export default function Chat({lobbyID} : {lobbyID: string}) {
 
   // default values set for lobbyID and username
 
-  async function getNickname() {
-    
-    await fetch("http://localhost:8080/users/" + localStorage.getItem("uid"))
-      .then(
-        (res) => res.json(),
-        (err) => console.error(err)
-      )
-      .then((data) => {
-        SetSessionUsername(data.username);
-      });
-  }
-
-
   const [sessionUsername, SetSessionUsername] = useState("");
 
   const [serverMessageList, SetServerMessageList] = useState<MessageData[]>([]); // messageList : MessageData[] // array of MessageData objects
@@ -63,13 +50,6 @@ export default function Chat({lobbyID} : {lobbyID: string}) {
 
   const messageListEndRef = useRef(null);
   
-  function ChatInit() {
-    let str = prompt("Enter a username");
-    if (str != null && str != "") {
-      SetSessionUsername(str);
-      socket.emit("join_chat", sessionUsername, lobbyID);
-    }
-  };
 
   const scrollToBottom = () => {
     messageListEndRef.current?.scrollIntoView({ behavior: "smooth" }); // '?' indicates that prop might be undefined
@@ -88,10 +68,24 @@ export default function Chat({lobbyID} : {lobbyID: string}) {
   
   // run on initial render
   useEffect(() =>  {
-    if (sessionUsername == "") {
-      ChatInit();
+    async function getNickname() {
+      await fetch("http://localhost:8080/users/" + localStorage.getItem("uid"))
+        .then(
+          (res) => res.json(),
+          (err) => console.error(err)
+        )
+        .then((data) => {
+          SetSessionUsername(data.nickname);
+        });
     }
-    // getMessages();
+    
+    function ChatInit() {
+      getNickname();
+      socket.emit("join_chat", sessionUsername, lobbyID);
+    };
+
+    ChatInit();
+
   }, []); // empty dependency array passed in, so effect will only run once, will not run on every re-render
 
   const SendMessage = () => {
@@ -99,7 +93,7 @@ export default function Chat({lobbyID} : {lobbyID: string}) {
       console.log("sending message: ", currentMessage);
       let newMessage = new MessageData(currentMessage, sessionUsername); // push message to messageList array
 
-      socket.emit("send_message", newMessage, lobbyID, localStorage.getItem("uid") || "-1");
+      socket.emit("send_message", newMessage, lobbyID, localStorage.getItem("uid"));
 
       // might need to get rid of this line, messages will be sent to server
       // server will update the db, and send that data back to everyone in the room
@@ -108,23 +102,12 @@ export default function Chat({lobbyID} : {lobbyID: string}) {
     SetCurrentMessage(""); // should clear input field
   };
 
-
-
   // listener for recieving messages
   // will run when dependencies change/rerender
   useEffect(() => {
-    // request message history from server on socket emit event
-    // socket.on("recieve_message", (recievedMessage: MessageData) => {
-    //   getMessages();
-    //   console.log("recieved message: ", recievedMessage);
-    //   // SetMessageList([...messageList, recievedMessage]); // don't use mutate the array, set it to a new array
-    //   scrollToBottom(); // only scroll to bottom on socket event
-    // });
-
     getMessages();
     if (messageList.length != serverMessageList.length) {
       SetMessageList(serverMessageList);
-      // scrollToBottom();
     }
 
     // serverMessageList will change constantly, need to check if we should update local messages
@@ -138,7 +121,7 @@ export default function Chat({lobbyID} : {lobbyID: string}) {
   return (
       <Card className="h-full w-96" shadow="none">
         <CardHeader className="justify-center">
-          <Button onClick={ChatInit}>
+          <Button disabled>
             Nickname:
             <div className="font-bold text-purple-500">{sessionUsername}</div>
           </Button>
