@@ -87,43 +87,12 @@ app.get("/lobbies", async (req, res) => {
 // });
 
 
-app.get("/messages/:id", async (req, res) => {
-    // if (req.params.id == '1') {
-    // }
-    try {
-        const db = client.db("radar");
-        const messages = db.collection("messages");
-        // const result = await messages.find({lobby_id: req.params.id});
-        const result = await messages.find({lobby_id:req.params.id}, {_id:0}).toArray();
-        res.json(result);
-        // console.log("sent messages to lobby w/ id ", req.params.id);
-        // console.log("Messages: ", JSON.stringify(result));
-    }
-    catch (error) {
-        console.log("Error: " + error);
-        res.status(500).json({ error: "Internal server error" });
-    }
 
 
-});
 
-app.get("/user/:username", async (req, res) => {
-    try {
-        const db = client.db("radar");
-        const users = db.collection("users");
-        const username = req.params.username;
-        const user = await users.findOne({ username: username });
 
-        if (user) {
-            res.json({ githubUsername: user.githubUsername });
-        } else {
-            res.status(404).send("User not found");
-        }
-    } catch (error) {
-        console.log("Error: " + error);
-        res.status(500).json({ error: "Internal server error" });
-    }
-});
+
+
 
 
 // io is the server, socket is the client websocket, each reference to "socket" can be thought of as speaking to the client which invoked it
@@ -139,25 +108,43 @@ io.on("connection", (socket) => { // => is a function expression, (parameter pas
     });
 
     socket.on("user_login", async (username, email, uid) => {
-        console.log("user login:");
+        console.log(`User login attempt: ${username}`);
         try {
             const db = client.db("radar");
             const users = db.collection("users");
-            var checkUser = await users.findOne({uid: uid});
+            var checkUser = await users.findOne({ uid: uid });
             if (!checkUser) {
-                console.log("user ", username, " not found, creating new user...");
-                const user = {name: username, email: email, uid: uid};
-                const newUser = await users.insertOne(user);
+                console.log(`User ${username} not found, creating new user...`);
+                const user = { name: username, email: email, uid: uid };
+                await users.insertOne(user);
+            } else {
+                console.log(`User ${username} with UID (${uid}) and Email (${email}) found!`);
             }
-            else { // user already exists
-                console.log("user ", username, " w/ uid (", uid, ") found!");
-            }
-        }  
-        catch (error) {
-            console.log("Error: " + error);
+        } catch (error) {
+            console.error(`Error during user login: ${error}`);
         }
     });
-
+    
+    app.get("/user/:uid", async (req, res) => {
+        const { uid } = req.params;
+        console.log(`Fetching user with UID: ${uid}`);
+        try {
+            const db = client.db("radar");
+            const users = db.collection("users");
+            const user = await users.findOne({ uid: uid });
+            if (!user) {
+                return res.status(404).json({ error: "User not found" });
+            }
+            res.json({
+                username: user.name,
+                email: user.email
+            });
+        } catch (error) {
+            console.error(`Error fetching user: ${error}`);
+            res.status(500).json({ error: "Internal server error" });
+        }
+    });
+    
 
     socket.on("create_lobby", async (lobby_name, lobby_game) => {
         // client.connect();

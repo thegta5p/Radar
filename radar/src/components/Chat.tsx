@@ -13,7 +13,7 @@ import {
   Divider,
 } from "@nextui-org/react";
 import SocketContext from "@/components/SocketContext";
-// import { io } from "socket.io-client";
+import { io } from "socket.io-client";
 
 class MessageData {
   // pass MessageData objects around

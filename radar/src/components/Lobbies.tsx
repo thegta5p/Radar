@@ -192,9 +192,13 @@ export default function Lobbies() {
   }, [filteredItems, tablePage]);
 
 
-  // selectedLobby will be a JS Set object
-  // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set
   const [selectedLobbyID, setSelectedLobbyID] = useState(null);
+  const handleJoinLobby = (lobbyID) => {
+    if (selectedLobbyID) {
+      router.push(`/` + selectedLobbyID);
+    }
+  };
+
   return (
     <div>
       <div className="place-content-center grid gap-y-12 my-64">
@@ -219,8 +223,7 @@ export default function Lobbies() {
                 ></Pagination>
                 {/* route to selected lobby */}
                 <Button className="bg-purple-800 text-white" 
-                  // onClick={() => alert("double-click row to join lobby!")}
-                  onClick={() => router.push(`/` + selectedLobbyID)}
+                  onClick={() => handleJoinLobby(selectedLobbyID)}
                 >
                   <p> Join Lobby {selectedLobbyID} </p>
                 </Button>
