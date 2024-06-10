@@ -52,53 +52,6 @@ export default function Lobbies() {
 
   }, [lobbies]);
 
-  // useState(() => {
-  //   async function getNickname
-
-
-
-  // }, []);
-
-
-  // uncomment this to use dummy data
-  // const [lobbies, setLobbies] = useState([
-  //   {
-  //     name: "Lobby 1",
-  //     game: "Game 1",
-  //     id: 1,
-
-  //   },
-  //   {
-  //     name: "Lobby 2",
-  //     game: "Game 2",
-  //     id: 2,
-  //   },
-  //   {
-  //     name: "Lobby 3",
-  //     game: "Game 3",
-  //     id: 3,
-  //   },
-  //   {
-  //     name: "Lobby 4",
-  //     game: "Game 1",
-  //     id: 4,
-  //   },
-  //   {
-  //     name: "Lobby 5",
-  //     game: "Game 4",
-  //     id: 5,
-  //   },
-  //   {
-  //     name: "Lobby 6",
-  //     game: "Game 4",
-  //     id: 6,
-  //   },
-  //   {
-  //     name: "Lobby 7",
-  //     game: "BLOPS",
-  //     id: 7,
-  //   },
-  // ]);
 
   const columns = [
     {
