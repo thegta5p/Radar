@@ -30,15 +30,13 @@ import {
 export default function LobbySidebar({name, game, id}) {
   // will be updated based on joined users
   const socket = useContext(SocketContext);
-
-  socket.on("lobby_closed", () => {
-    alert("lobby closed!");
-    router.replace("/main-page");
-  });
-
   const router = useRouter();
 
 
+
+  
+  
+  
   // const [memberList, setMemberList] = useState(["user1", "user2", "user3", "user4", "user5", "user6", "user7", "user8", "user9"]);
   
   // when someone joins the lobby, push them onto memberList
@@ -54,7 +52,7 @@ export default function LobbySidebar({name, game, id}) {
   
   // store uids of users in lobby
   const [serverMemberList, setServerMemberList] = useState([]);
-
+  
   // store userdata of lobby members
   const [memberList, setMemberList] = useState([]);
 
@@ -77,6 +75,10 @@ export default function LobbySidebar({name, game, id}) {
                 setServerMemberList(data.members);
             });
     }
+    socket.on("lobby_closed", () => {
+      alert("lobby closed!");
+      router.replace("/main-page");
+    });
     getLobbyInfo();
   }, [serverMemberList]);
 
