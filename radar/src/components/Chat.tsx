@@ -133,7 +133,8 @@ export default function Chat({lobbyID} : {lobbyID: string}) {
           <ScrollShadow visibility="top">
             {messageList.map((m) => (
               <Message
-                key={m.timeStamp}
+                // key={m.timeStamp + m.content} // seems to work fine without key
+                // don't need a key because this array will never be reordered
                 content={m.content}
                 author={m.author}
                 timeStamp={m.timeStamp}

@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 
 import SocketContext from "./SocketContext";
 
+
 import {
   Card,
   CardHeader,
@@ -34,16 +35,17 @@ export default function LobbySidebar({name, game, id}) {
   const socket = useContext(SocketContext);
   const router = useRouter();
 
-  const [memberList, setMemberList] = useState(["user1", "user2", "user3", "user4", "user5", "user6", "user7", "user8", "user9"]);
+  // const [memberList, setMemberList] = useState(["user1", "user2", "user3", "user4", "user5", "user6", "user7", "user8", "user9"]);
+  
   // when someone joins the lobby, push them onto memberList
   const [lobbyTitle, setLobbyTitle] = useState(name);
   const [activityTitle, setActivityTitle] = useState(game);
   const [lobbyID, setLobbyId] = useState(id);
   const [memberCap, setMemberCap] = useState(5);
-
+  
   const toolTip = "Lobby settings only mutable by lobby creator!";
   // lobbyOwner can modify title and disc.
-
+  
   const [disabled, setDisabled] = useState(true);
   // const isDisabled = true;
   // need a pointers to lobby owner, and current user
@@ -52,7 +54,9 @@ export default function LobbySidebar({name, game, id}) {
   // store uids of users in lobby
   const [serverMemberList, setServerMemberList] = useState([]);
 
-
+  // store userdata of lobby members
+  const [memberList, setMemberList] = useState([]);
+  // run on initial render
   useEffect(() => {
     // check for lobby owner
     async function getLobbyInfo() {
@@ -62,19 +66,42 @@ export default function LobbySidebar({name, game, id}) {
                 (err) => console.error(err)
             )
             .then((data) => {
-                // console.log("data: " + JSON.stringify(data));
-                // alert(data.name);
                 setLobbyTitle(data.name);
                 setActivityTitle(data.game);
                 // alert("lobby owner_uid: " + data.owner_uid);
                 if (data.owner_uid == localStorage.getItem("uid")) {
                     setDisabled(false);
                 }
+                // setMemberList(data.members);
+                setServerMemberList(data.members);
             });
     }
     getLobbyInfo();
-}, []);
+  }, [serverMemberList]);
 
+  // will run whenever serverMemberList is updated
+  useEffect(() => {
+    async function getNickname() {
+      for (var i = 0; i < serverMemberList.length; i++) {
+        // alert("fetching member info for: " + serverMemberList[i]);
+        await fetch("http://localhost:8080/users/" + serverMemberList[i])
+          .then(
+            (res) => res.json(),
+            (err) => console.error(err)
+          )
+          .then((data) => {
+            // alert("data: " + JSON.stringify(data));
+            // alert("nickname: " + data.nickname);
+
+            if (serverMemberList.length != memberList.length) { // ensures that we only add
+              setMemberList([...memberList, data]);
+            }
+            // setMemberList([...memberList, data]);
+          });
+      }
+    }
+    getNickname();
+  }, [serverMemberList]);
 
   function handleLobbyClose() {
     alert("closing lobby!");
@@ -89,26 +116,36 @@ export default function LobbySidebar({name, game, id}) {
       <CardHeader className="flex flex-col gap-2 items-start text-wrap max-w-56">
         <p className="text-purple-500 font-bold text-3xl text-wrap"> {lobbyTitle} </p>
         <Divider/>
-        <p className="font-bold text-xl"> {activityTitle} </p>
-        <p> lobbyID: {id} </p>
+        <p className="font-bold text-2xl"> {activityTitle} </p>
+        <p className="text-sm"> lobbyID: {id} </p>
       </CardHeader>
 
-      <CardBody className="flex flex-col justify-center">
-        <div className="grid gap-1 grid-cols-2">
+      <CardBody className="flex flex-col justify-start">
+        <div 
+          // className="grid gap-1 grid-cols-2"
+          className="flex flex-col gap-1 h-64 overflow-y-auto"
+        >
+          <p className="font-bold"> Lobby Members: </p>
+
           {memberList.map((m) => (
-                      <Dropdown key={m}>
+                      <Dropdown // key={m}
+                      >
                         <DropdownTrigger>
                           <Button>
-                            <p className="font-bold text-purple-500"> {m} </p>
+                            <p className="font-bold text-purple-500"> {m.nickname} </p>
                           </Button>
                         </DropdownTrigger>
-                        <DropdownMenu>
+                        <DropdownMenu variant="light">
                           <DropdownItem
                             // className="text-danger"
                             // color="secondary"
                           >
-                            <p className="font-bold"> User Info </p>
+                            <p className="font-bold"> {m.name} </p>
                           </DropdownItem>
+                          <DropdownItem>
+                            <p className="font-bold"> {m.email} </p>
+                          </DropdownItem>
+
                         </DropdownMenu>
                       </Dropdown>
                     ))}
