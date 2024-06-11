@@ -22,7 +22,7 @@ import {
 import LobbyCreator from "./LobbyCreator";
 import Logout from "@/components/logout";
 import { Selection } from "@react-types/shared";
-// import LobbyModal from "@/components/LobbyModal";
+import EditUser from "./EditUser";
 
 import { ThemeSwitcher } from "./ThemeSwitcher";
 import SocketContext from "./SocketContext";
@@ -162,17 +162,17 @@ export default function Lobbies() {
     }
   };
 
-  const handleChangeNickname = () => {
-    const nickname = prompt("Enter your new nickname: ");
+  // const handleChangeNickname = () => {
+  //   const nickname = prompt("Enter your new nickname: ");
 
-    if (!nickname) { // nickname is null if user cancels prompt
-      return;
-    }
+  //   if (!nickname) { // nickname is null if user cancels prompt
+  //     return;
+  //   }
 
-    else {
-      socket.emit("update_nickname", nickname, localStorage.getItem("uid"));
-    }
-  };
+  //   else {
+  //     socket.emit("update_nickname", nickname, localStorage.getItem("uid"));
+  //   }
+  // };
 
   return (
     <div>
@@ -196,11 +196,14 @@ export default function Lobbies() {
                   total={tablePages}
                   onChange={(tablePage) => setTablePage(tablePage)}
                 ></Pagination>
-                <Button color="success" className="text-white"
+                {/* <Button color="success" className="text-white"
                   onClick={() => handleChangeNickname()}
                   >
                   <p> Change Nickname </p>
-                </Button>
+                </Button> */}
+                <EditUser/>
+
+
                 {/* route to selected lobby */}
                 <Button className="bg-purple-800 text-white" 
                   onClick={() => handleJoinLobby(selectedLobbyID)}

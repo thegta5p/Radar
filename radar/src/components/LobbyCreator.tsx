@@ -9,13 +9,6 @@ import {
   ModalBody,
   ModalContent,
   ModalFooter,
-  Dropdown,
-  DropdownTrigger,
-  DropdownMenu,
-  DropdownItem,
-  Slider,
-  Switch,
-  SliderValue,
 } from "@nextui-org/react";
 import { Selection } from "@react-types/shared";
 
