@@ -31,7 +31,6 @@ import {
 
 export default function LobbySidebar({name, game, id}) {
   // will be updated based on joined users
-  
   const socket = useContext(SocketContext);
   const router = useRouter();
 
@@ -56,7 +55,7 @@ export default function LobbySidebar({name, game, id}) {
 
   // store userdata of lobby members
   const [memberList, setMemberList] = useState([]);
-  // run on initial render
+
   useEffect(() => {
     // check for lobby owner
     async function getLobbyInfo() {
@@ -117,7 +116,7 @@ export default function LobbySidebar({name, game, id}) {
         <p className="text-purple-500 font-bold text-3xl text-wrap"> {lobbyTitle} </p>
         <Divider/>
         <p className="font-bold text-2xl"> {activityTitle} </p>
-        <p className="text-sm"> lobbyID: {id} </p>
+        <p className="text-xs"> lobbyID: {id} </p>
       </CardHeader>
 
       <CardBody className="flex flex-col justify-start">

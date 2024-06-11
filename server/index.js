@@ -207,11 +207,11 @@ io.on("connection", (socket) => { // => is a function expression, (parameter pas
         // client should re-render on DB update
         // lobby_id should be a string of form: "chat1"
         // make sure it's actually passed in as a string...
-    socket.on("send_message", async (message, lobby_id, author_uid) => {
+    socket.on("send_message", async (message, lobby_id) => {
         try {
             const db = client.db("radar");
             const messages = db.collection("messages");
-            const msg = {content: message.content, author: message.author, timeStamp: message.timeStamp, lobby_id: lobby_id, author_uid: author_uid};
+            const msg = {content: message.content, author: message.author, timeStamp: message.timeStamp, lobby_id: lobby_id, author_uid: message.author_uid};
             const result = await messages.insertOne(msg);
             // not used in Chat.tsx for now, but will be useful for synchronizing db requests from client
             socket.to(lobby_id).emit("recieve_message", message); // on recieved message, clients should fetch the latest messages from the DB

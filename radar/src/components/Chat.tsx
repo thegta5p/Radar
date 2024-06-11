@@ -20,13 +20,13 @@ class MessageData {
   content: string;
   author: string;
   timeStamp: string;
-  // uid: string; // uid not used 
+  author_uid: string; // uid not used 
 
   constructor(content: string, author: string) {
     this.content = content;
     this.author = author;
-    this.timeStamp = new Date().toLocaleDateString() + " @ " + new Date().toLocaleTimeString();
-    // this.uid = localStorage.getItem("uid") || "-1";
+    this.timeStamp = new Date().toLocaleDateString() + " @ " + new Date().toLocaleTimeString('en-us');
+    this.author_uid = localStorage.getItem("uid") || "-1";
   }
 }
 
@@ -93,7 +93,8 @@ export default function Chat({lobbyID} : {lobbyID: string}) {
       console.log("sending message: ", currentMessage);
       let newMessage = new MessageData(currentMessage, sessionUsername); // push message to messageList array
 
-      socket.emit("send_message", newMessage, lobbyID, localStorage.getItem("uid"));
+      // uid is a prop of MessageData object
+      socket.emit("send_message", newMessage, lobbyID);
 
       // might need to get rid of this line, messages will be sent to server
       // server will update the db, and send that data back to everyone in the room
@@ -138,6 +139,7 @@ export default function Chat({lobbyID} : {lobbyID: string}) {
                 content={m.content}
                 author={m.author}
                 timeStamp={m.timeStamp}
+                author_uid={m.author_uid}
               />
             ))}
             {/* key is needed for react to disgtinguish between elements/for production build to compile */}
@@ -169,10 +171,15 @@ function Message(data: MessageData) {
   return (
     <Card className="m-3" shadow="sm" radius="none">
       <CardHeader className="flex justify-between">
-        <p className="text-base font-bold text-left text-purple-500">
-          {data.author}
-        </p>
-        <p className="text-sm text-right">
+        <div className="flex-col">
+          <p className="text-base font-bold text-left text-purple-500">
+            {data.author}
+          </p>
+          <p className="text-xs italic">
+            {data.author_uid}
+          </p>
+        </div>
+        <p className="text-xs text-right">
           {data.timeStamp}
           {/* time, formated as HR:MIN:SEC*/}
         </p>
