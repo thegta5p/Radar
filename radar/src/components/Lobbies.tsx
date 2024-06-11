@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 // import { useRouter } from "next/router";
 import { useRouter } from "next/navigation";
 
@@ -21,18 +21,16 @@ import {
 } from "@nextui-org/react";
 import LobbyCreator from "./LobbyCreator";
 import Logout from "@/components/logout";
-import LoginButton from "@/components/LoginButton";
 import { Selection } from "@react-types/shared";
-import LobbyModal from "@/components/LobbyModal";
+import EditUser from "./EditUser";
 
 import { ThemeSwitcher } from "./ThemeSwitcher";
-
-import { BsSearch } from "react-icons/bs";
-import { Router } from "react-router-dom";
+import SocketContext from "./SocketContext";
 
 
 export default function Lobbies() {
 
+  const socket = useContext(SocketContext);
   const router = useRouter();
 
   const [lobbies, setLobbies] = useState([]);
@@ -54,44 +52,6 @@ export default function Lobbies() {
 
   }, [lobbies]);
 
-  // const [lobbies, setLobbies] = useState([
-  //   {
-  //     name: "Lobby 1",
-  //     game: "Game 1",
-  //     id: 1,
-
-  //   },
-  //   {
-  //     name: "Lobby 2",
-  //     game: "Game 2",
-  //     id: 2,
-  //   },
-  //   {
-  //     name: "Lobby 3",
-  //     game: "Game 3",
-  //     id: 3,
-  //   },
-  //   {
-  //     name: "Lobby 4",
-  //     game: "Game 1",
-  //     id: 4,
-  //   },
-  //   {
-  //     name: "Lobby 5",
-  //     game: "Game 4",
-  //     id: 5,
-  //   },
-  //   {
-  //     name: "Lobby 6",
-  //     game: "Game 4",
-  //     id: 6,
-  //   },
-  //   {
-  //     name: "Lobby 7",
-  //     game: "BLOPS",
-  //     id: 7,
-  //   },
-  // ]);
 
   const columns = [
     {
@@ -104,7 +64,7 @@ export default function Lobbies() {
     },
     {
       key: "id",
-      label: "ID",
+      label: "Lobby ID",
     },
   ];
 
@@ -194,15 +154,26 @@ export default function Lobbies() {
     return filteredItems.slice(start, end);
   }, [filteredItems, tablePage]);
 
-  function selectLobby(selection:any) {
-    setSelectedLobby(selection);
-    // alert(selection.id);
-  } 
 
-  // selectedLobby will be a JS Set object
-  // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set
-  const [selectedLobby, setSelectedLobby] = useState<Selection>(new Set());
-  const [selectedLobbyID, setSelectedLobbyID] = useState("");
+  const [selectedLobbyID, setSelectedLobbyID] = useState(null);
+  const handleJoinLobby = (lobbyID) => {
+    if (selectedLobbyID) {
+      router.push(`/` + selectedLobbyID);
+    }
+  };
+
+  // const handleChangeNickname = () => {
+  //   const nickname = prompt("Enter your new nickname: ");
+
+  //   if (!nickname) { // nickname is null if user cancels prompt
+  //     return;
+  //   }
+
+  //   else {
+  //     socket.emit("update_nickname", nickname, localStorage.getItem("uid"));
+  //   }
+  // };
+
   return (
     <div>
       <div className="place-content-center grid gap-y-12 my-64">
@@ -210,16 +181,12 @@ export default function Lobbies() {
           topContent={tableTopContent}
           removeWrapper={true}
           color="primary"
-          // selectionMode="single"
           selectionMode="multiple"
           selectionBehavior="replace"
-          selectedKeys={selectedLobby}
-          onSelectionChange={setSelectedLobby}
-          // onRowAction={(key) => alert('/' + key)}
-          onRowAction={(key) => router.push(`/` + key)}
+          onRowAction={(key) => setSelectedLobbyID(key)}
           bottomContent={
             <div className="flex flex-col gap-4">
-              <div className="flex justify-between gap-3 items-end">
+              <div className="flex justify-between gap-3 items-center">
                 <Pagination
                   isCompact
                   showControls
@@ -229,9 +196,19 @@ export default function Lobbies() {
                   total={tablePages}
                   onChange={(tablePage) => setTablePage(tablePage)}
                 ></Pagination>
+                {/* <Button color="success" className="text-white"
+                  onClick={() => handleChangeNickname()}
+                  >
+                  <p> Change Nickname </p>
+                </Button> */}
+                <EditUser/>
+
+
                 {/* route to selected lobby */}
-                <Button className="bg-purple-800 text-white" onClick={() => alert("double-click row to join lobby!")}>
-                  <p> Join Lobby {selectedLobby} </p>
+                <Button className="bg-purple-800 text-white" 
+                  onClick={() => handleJoinLobby(selectedLobbyID)}
+                >
+                  <p> Join Lobby {selectedLobbyID} </p>
                 </Button>
               </div>
             </div>

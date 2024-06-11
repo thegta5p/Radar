@@ -9,7 +9,7 @@ import {
   Input,
 } from "@nextui-org/react";
 import react, { useState, useMemo } from "react";
-import * as users from "../../api/users";
+// import * as users from "../../api/users";
 
 async function sendUserName(username) {
   var username = username;
@@ -24,7 +24,7 @@ async function sendUserName(username) {
     alert("Username set to " + username);
   }
 }
-import * as usersAPI from "../../api/users";
+// import * as usersAPI from "../../api/users";
 
 /*
 async function sendUserName(username) {

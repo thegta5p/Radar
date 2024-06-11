@@ -65,27 +65,33 @@ app.get("/lobbies", async (req, res) => {
     // }
 });
 
-// don't need this for now, need to figure out how to generate routes for each lobby
-// routes currently made for any "/[id]", even lobbies that don't exist
-    // see next.config.mjs for more info
-// app.get("/lobbies/ids", async (req, res) => {
-//     // https://stackoverflow.com/questions/25589113/how-to-select-a-single-field-for-all-documents-in-a-mongodb-collection
-//     try {
-//         // await client.connect();
-//         const db = client.db("radar");
-//         const lobbies = db.collection("lobbies");
-//         const result = await lobbies.find({}, {name:0, game:0, id:1, _id:0}).toArray();
-//         res.json(result);
-//     }
-//     catch (error) {
-//         console.log("Error: " + error);
-//         res.status(500).json({ error: "Internal server error" });
-//     }
-//     // finally {
-//     //     await client.close();
-//     // }
-// });
+app.get("/lobbies/:id", async (req, res) => {
+    try {
+        const db = client.db("radar");
+        const lobbies = db.collection("lobbies");
+        const result = await lobbies.findOne({id: req.params.id});
+        res.json(result);
+    }
+    catch (error) { 
+        console.log("Error: " + error);
+        res.status(500).json({ error: "Internal server error" });
+    }
+});
 
+// get user info by uid
+app.get("/users/:uid", async (req, res) => {
+    try {
+        const db = client.db("radar");
+        const users = db.collection("users");
+        const result = await users.findOne({uid: req.params.uid}, {_id:0, name:1, email:1, uid:1, nickname:1});
+        res.json(result);
+        // console.log("sent user info for uid ", req.params.uid);
+    }
+    catch (error) {
+        console.log("Error: " + error);
+        res.status(500).json({ error: "Internal server error" });
+    }
+});
 
 app.get("/messages/:id", async (req, res) => {
     // if (req.params.id == '1') {
@@ -103,8 +109,6 @@ app.get("/messages/:id", async (req, res) => {
         console.log("Error: " + error);
         res.status(500).json({ error: "Internal server error" });
     }
-
-
 });
 
 // io is the server, socket is the client websocket, each reference to "socket" can be thought of as speaking to the client which invoked it
@@ -119,26 +123,85 @@ io.on("connection", (socket) => { // => is a function expression, (parameter pas
         console.log("user disconnected: ", socket.id);
     });
 
-    socket.on("create_lobby", async (lobby_name, lobby_game) => {
-        // client.connect();
+    socket.on("user_login", async (username, email, uid) => {
+        console.log("user login:");
         try {
             const db = client.db("radar");
-            const lobbies = db.collection("lobbies");
-            // pass a unique lobby_id to the DB
-            const lobby_id = (+new Date * Math.random()).toString(36).substring(0,6);
-            const lobby = { name: lobby_name, game: lobby_game, id: lobby_id };
-            const result = await lobbies.insertOne(lobby);
-            // client.close();
-            console.log("lobby created: " + lobby_name + ", " + lobby_game + ", " + lobby_id);
+            const users = db.collection("users");
+            var checkUser = await users.findOne({uid: uid});
+            if (!checkUser) {
+                console.log("user ", username, " not found, creating new user...");
+                const user = {name: username, email: email, uid: uid, nickname: username}; // nickname defaults to gh displayname
+                const newUser = await users.insertOne(user);
+            }
+            else { // user already exists
+                console.log("user ", username, " w/ uid (", uid, ") found!");
+            }
+        }  
+        catch (error) {
+            console.log("Error: " + error);
+        }
+    });
+
+    socket.on("update_nickname", async (nickname, uid) => {
+        console.log("user ", uid, " updating nickname to ", nickname);
+        try {
+            const db = client.db("radar");
+            const users = db.collection("users");
+            const result = await users.updateOne({uid: uid}, {$set: {nickname: nickname}});
         }
         catch (error) {
             console.log("Error: " + error);
         }
     });
 
-    socket.on("join_chat", (username, lobby_id) => {
+
+    socket.on("create_lobby", async (lobby_name, lobby_game, owner_uid) => {
+        // client.connect();
+        try {
+            const db = client.db("radar");
+            const lobbies = db.collection("lobbies");
+            // pass a unique lobby_id to the DB
+            const lobby_id = (+new Date * Math.random()).toString(36).substring(0,6);
+            const lobby = { name: lobby_name, game: lobby_game, id: lobby_id, owner_uid: owner_uid};
+            const result = await lobbies.insertOne(lobby);
+            // client.close();
+            console.log("lobby created: " + lobby_name + ", " + lobby_game + ", " + lobby_id, " by ", owner_uid);
+        }
+        catch (error) {
+            console.log("Error: " + error);
+        }
+    });
+
+    socket.on("close_lobby", async (lobby_id) => {
+        try {
+            const db = client.db("radar");
+            const lobbies = db.collection("lobbies");
+            const result = await lobbies.deleteOne({id: lobby_id});
+            console.log("lobby ", lobby_id, " closed");
+            socket.to(lobby_id).emit("lobby_closed"); // everyone connected to the lobby should be notified and redirected
+        }
+        catch (error) {
+            console.log("Error: " + error);
+        }
+    });
+
+    socket.on("join_chat", async (lobby_id, uid) => {
         socket.join(lobby_id);
-        console.log(username, " joined chat on lobby ", lobby_id);    
+        try {
+            const db = client.db("radar");
+            const lobbies = db.collection("lobbies");
+            // check if the member is on the member list, if not, add them
+            const checkMember = await lobbies.findOne({id: lobby_id, members: uid}); // does members contain the user with uid?
+            if (!checkMember) {
+                const result = await lobbies.updateOne({id: lobby_id}, {$addToSet: {members: uid}});
+                console.log("added user with uid ", uid, " to lobby ", lobby_id);
+            }
+        }
+        catch (error) {
+            console.log("Error: " + error);
+        }
+        console.log("user with uid ", uid, " joined chat on lobby ", lobby_id);
     });
     
     // when a message is sent, update the database
@@ -149,25 +212,18 @@ io.on("connection", (socket) => { // => is a function expression, (parameter pas
         try {
             const db = client.db("radar");
             const messages = db.collection("messages");
-            const msg = {content: message.content, author: message.author, timeStamp: message.timeStamp, lobby_id: lobby_id};
+            const msg = {content: message.content, author: message.author, timeStamp: message.timeStamp, lobby_id: lobby_id, author_uid: message.author_uid};
             const result = await messages.insertOne(msg);
             // not used in Chat.tsx for now, but will be useful for synchronizing db requests from client
             socket.to(lobby_id).emit("recieve_message", message); // on recieved message, clients should fetch the latest messages from the DB
-            console.log("(", socket.id, "): ", message.author, " says : \"", message.content, " \" to ", lobby_id, " at ", message.timeStamp);
+            // console.log("(", socket.id, "): ", message.author, " says : \"", message.content, " \" to ", lobby_id, " at ", message.timeStamp);
+            console.log(message.author, " says : \"", message.content, " \" to ", lobby_id, " at ", message.timeStamp);
         }
         catch (error) {
             console.log("Error: " + error);
         }
     });
 });
-
-
-// process.on("exit", () => {
-//     client.close();
-//     console.log("Closed connection to MongoDB");
-//     process.exit();
-// });
-
 
 // will disconnect when the process is terminated
 process.on("SIGINT", () => {

@@ -13,18 +13,20 @@ import {
   Divider,
 } from "@nextui-org/react";
 import SocketContext from "@/components/SocketContext";
-import { io } from "socket.io-client";
+// import { io } from "socket.io-client";
 
 class MessageData {
   // pass MessageData objects around
   content: string;
   author: string;
   timeStamp: string;
+  author_uid: string; // uid not used 
 
   constructor(content: string, author: string) {
     this.content = content;
     this.author = author;
-    this.timeStamp = new Date().toLocaleDateString() + " @ " + new Date().toLocaleTimeString();
+    this.timeStamp = new Date().toLocaleDateString() + " @ " + new Date().toLocaleTimeString('en-us');
+    this.author_uid = localStorage.getItem("uid") || "-1";
   }
 }
 
@@ -36,6 +38,7 @@ export default function Chat({lobbyID} : {lobbyID: string}) {
   const [currentMessage, SetCurrentMessage] = useState("");
 
   // default values set for lobbyID and username
+
   const [sessionUsername, SetSessionUsername] = useState("");
 
   const [serverMessageList, SetServerMessageList] = useState<MessageData[]>([]); // messageList : MessageData[] // array of MessageData objects
@@ -47,13 +50,6 @@ export default function Chat({lobbyID} : {lobbyID: string}) {
 
   const messageListEndRef = useRef(null);
   
-  function ChatInit() {
-    let str = prompt("Enter a username");
-    if (str != null && str != "") {
-      SetSessionUsername(str);
-      socket.emit("join_chat", sessionUsername, lobbyID);
-    }
-  };
 
   const scrollToBottom = () => {
     messageListEndRef.current?.scrollIntoView({ behavior: "smooth" }); // '?' indicates that prop might be undefined
@@ -72,10 +68,24 @@ export default function Chat({lobbyID} : {lobbyID: string}) {
   
   // run on initial render
   useEffect(() =>  {
-    if (sessionUsername == "") {
-      ChatInit();
+    async function getNickname() {
+      await fetch("http://localhost:8080/users/" + localStorage.getItem("uid"))
+        .then(
+          (res) => res.json(),
+          (err) => console.error(err)
+        )
+        .then((data) => {
+          SetSessionUsername(data.nickname);
+        });
     }
-    // getMessages();
+    
+    function ChatInit() {
+      getNickname();
+      socket.emit("join_chat", lobbyID, localStorage.getItem("uid"));
+    };
+
+    ChatInit();
+
   }, []); // empty dependency array passed in, so effect will only run once, will not run on every re-render
 
   const SendMessage = () => {
@@ -83,6 +93,7 @@ export default function Chat({lobbyID} : {lobbyID: string}) {
       console.log("sending message: ", currentMessage);
       let newMessage = new MessageData(currentMessage, sessionUsername); // push message to messageList array
 
+      // uid is a prop of MessageData object
       socket.emit("send_message", newMessage, lobbyID);
 
       // might need to get rid of this line, messages will be sent to server
@@ -92,23 +103,12 @@ export default function Chat({lobbyID} : {lobbyID: string}) {
     SetCurrentMessage(""); // should clear input field
   };
 
-
-
   // listener for recieving messages
   // will run when dependencies change/rerender
   useEffect(() => {
-    // request message history from server on socket emit event
-    // socket.on("recieve_message", (recievedMessage: MessageData) => {
-    //   getMessages();
-    //   console.log("recieved message: ", recievedMessage);
-    //   // SetMessageList([...messageList, recievedMessage]); // don't use mutate the array, set it to a new array
-    //   scrollToBottom(); // only scroll to bottom on socket event
-    // });
-
     getMessages();
     if (messageList.length != serverMessageList.length) {
       SetMessageList(serverMessageList);
-      // scrollToBottom();
     }
 
     // serverMessageList will change constantly, need to check if we should update local messages
@@ -122,7 +122,7 @@ export default function Chat({lobbyID} : {lobbyID: string}) {
   return (
       <Card className="h-full w-96" shadow="none">
         <CardHeader className="justify-center">
-          <Button onClick={ChatInit}>
+          <Button disabled>
             Nickname:
             <div className="font-bold text-purple-500">{sessionUsername}</div>
           </Button>
@@ -134,10 +134,12 @@ export default function Chat({lobbyID} : {lobbyID: string}) {
           <ScrollShadow visibility="top">
             {messageList.map((m) => (
               <Message
-                key={m.timeStamp}
+                // key={m.timeStamp + m.content} // seems to work fine without key
+                // don't need a key because this array will never be reordered
                 content={m.content}
                 author={m.author}
                 timeStamp={m.timeStamp}
+                author_uid={m.author_uid}
               />
             ))}
             {/* key is needed for react to disgtinguish between elements/for production build to compile */}
@@ -169,10 +171,15 @@ function Message(data: MessageData) {
   return (
     <Card className="m-3" shadow="sm" radius="none">
       <CardHeader className="flex justify-between">
-        <p className="text-base font-bold text-left text-purple-500">
-          {data.author}
-        </p>
-        <p className="text-sm text-right">
+        <div className="flex-col">
+          <p className="text-base font-bold text-left text-purple-500">
+            {data.author}
+          </p>
+          <p className="text-xs italic">
+            {data.author_uid}
+          </p>
+        </div>
+        <p className="text-xs text-right">
           {data.timeStamp}
           {/* time, formated as HR:MIN:SEC*/}
         </p>
