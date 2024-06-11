@@ -85,7 +85,7 @@ app.get("/users/:uid", async (req, res) => {
         const users = db.collection("users");
         const result = await users.findOne({uid: req.params.uid}, {_id:0, name:1, email:1, uid:1, nickname:1});
         res.json(result);
-        console.log("sent user info for uid ", req.params.uid);
+        // console.log("sent user info for uid ", req.params.uid);
     }
     catch (error) {
         console.log("Error: " + error);
