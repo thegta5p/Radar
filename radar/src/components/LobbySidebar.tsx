@@ -17,9 +17,7 @@ import {
   Spacer,
   Button,
   Divider,
-  Textarea,
   Tooltip,
-  Chip,
 } from "@nextui-org/react";
 import {
   Dropdown,
@@ -32,7 +30,14 @@ import {
 export default function LobbySidebar({name, game, id}) {
   // will be updated based on joined users
   const socket = useContext(SocketContext);
+
+  socket.on("lobby_closed", () => {
+    alert("lobby closed!");
+    router.replace("/main-page");
+  });
+
   const router = useRouter();
+
 
   // const [memberList, setMemberList] = useState(["user1", "user2", "user3", "user4", "user5", "user6", "user7", "user8", "user9"]);
   
@@ -41,9 +46,6 @@ export default function LobbySidebar({name, game, id}) {
   const [activityTitle, setActivityTitle] = useState(game);
   const [lobbyID, setLobbyId] = useState(id);
   const [memberCap, setMemberCap] = useState(5);
-  
-  const toolTip = "Lobby settings only mutable by lobby creator!";
-  // lobbyOwner can modify title and disc.
   
   const [disabled, setDisabled] = useState(true);
   // const isDisabled = true;
@@ -81,6 +83,8 @@ export default function LobbySidebar({name, game, id}) {
   // will run whenever serverMemberList is updated
   useEffect(() => {
     async function getNickname() {
+      
+      var tempMemberList = [];
       for (var i = 0; i < serverMemberList.length; i++) {
         // alert("fetching member info for: " + serverMemberList[i]);
         await fetch("http://localhost:8080/users/" + serverMemberList[i])
@@ -93,8 +97,11 @@ export default function LobbySidebar({name, game, id}) {
             // alert("nickname: " + data.nickname);
 
             if (serverMemberList.length != memberList.length) { // ensures that we only add
-              setMemberList([...memberList, data]);
+              tempMemberList.push(data);
+              // setMemberList([...memberList, data]);
+              setMemberList(tempMemberList); 
             }
+            
             // setMemberList([...memberList, data]);
           });
       }
@@ -152,11 +159,10 @@ export default function LobbySidebar({name, game, id}) {
       </CardBody>
       <CardFooter className="justify-center">
         <Button color="danger" 
-        isDisabled={disabled}
-        onClick={() => handleLobbyClose()}
-          
-        > Close Lobby 
-
+          isDisabled={disabled}
+          onClick={() => handleLobbyClose()}
+        > 
+          Close Lobby 
         </Button>
       </CardFooter>
     </Card>

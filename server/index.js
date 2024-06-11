@@ -179,6 +179,7 @@ io.on("connection", (socket) => { // => is a function expression, (parameter pas
             const lobbies = db.collection("lobbies");
             const result = await lobbies.deleteOne({id: lobby_id});
             console.log("lobby ", lobby_id, " closed");
+            socket.to(lobby_id).emit("lobby_closed"); // everyone connected to the lobby should be notified and redirected
         }
         catch (error) {
             console.log("Error: " + error);
