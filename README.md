@@ -16,7 +16,6 @@ Contributors: Julian Dela Rosa-Billings (jdela055@ucr.edu), (jmuni017@ucr.edu), 
 Additonal Server Libraries Used: socket.io
 
 Notes:
-* Lab was built with NextJS and will be extended for final project, so some placeholders are present
 * Front-end was build with Next JS, due to dev build compiling and re-rendering, alerts may appear twice
 # Usage Instructions
 1. Navigate to /radar, do "npm i"
